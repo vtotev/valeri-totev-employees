@@ -7,9 +7,8 @@ import test.task.employees.entity.Team;
 import test.task.employees.entity.view.ProjectViewModel;
 import test.task.employees.repository.ProjectRepository;
 import test.task.employees.service.ProjectService;
+import test.task.employees.utils.DateUtilities;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,7 +53,7 @@ public class ProjectServiceImpl implements ProjectService {
             List<Employee> employees = p.getEmployees().stream().sorted(Comparator.comparing(Employee::getEmpId)).toList();
             employees.forEach(e -> {
                 employees.forEach(e2 -> {
-                    if (!e.equals(e2) && isDateOverlapping(e, e2) && !isTeamPresent(e, e2, p.getProjectId())) {
+                    if (!e.equals(e2) && DateUtilities.isDateOverlapping(e, e2) && !isTeamPresent(e, e2, p.getProjectId())) {
                         teams.add(new Team(e, e2, p.getProjectId()));
                     }
                 });
@@ -71,7 +70,7 @@ public class ProjectServiceImpl implements ProjectService {
             ref.views.add(new ProjectViewModel().setProjectId(team.getProjectId())
                     .setFirstEmployee(firstEmployee.getEmpId())
                     .setSecondEmployee(secondEmployee.getEmpId())
-                    .setDaysWorked(calculateDays(firstEmployee, secondEmployee)));
+                    .setDaysWorked(DateUtilities.calculateDays(firstEmployee, secondEmployee)));
         });
 
         // Create grouping by teams to sum up all their days worked together
@@ -89,25 +88,5 @@ public class ProjectServiceImpl implements ProjectService {
         return new ArrayList<>();
     }
 
-    // Calculate days worked together
-    private Long calculateDays(Employee firstEmp, Employee secondEmp) {
-        LocalDate empl1DateTo = firstEmp.getDateTo() == null ? LocalDate.now() : firstEmp.getDateTo();
-        LocalDate empl2DateTo = secondEmp.getDateTo() == null ? LocalDate.now() : secondEmp.getDateTo();
-        LocalDate dateStart = firstEmp.getDateFrom().isBefore(secondEmp.getDateFrom()) ? secondEmp.getDateFrom() : firstEmp.getDateFrom();
-        LocalDate dateEnd = empl1DateTo.isAfter(empl2DateTo) ? empl2DateTo : empl1DateTo;
-        return ChronoUnit.DAYS.between(dateStart, dateEnd);
-    }
-
-    // check if dates are overlapping
-    private boolean isDateOverlapping(Employee empl1, Employee empl2) {
-        LocalDate empl1DateFrom = empl1.getDateFrom();
-        LocalDate empl2DateFrom = empl2.getDateFrom();
-        LocalDate empl1DateTo = empl1.getDateTo() == null ? LocalDate.now() : empl1.getDateTo();
-        LocalDate empl2DateTo = empl2.getDateTo() == null ? LocalDate.now() : empl2.getDateTo();
-        return empl1DateFrom.isBefore(empl2DateFrom) && empl1DateTo.isAfter(empl2DateFrom) ||
-                empl1DateFrom.isBefore(empl2DateTo) && empl1DateTo.isAfter(empl2DateTo) ||
-                empl1DateFrom.isBefore(empl2DateFrom) && empl1DateTo.isAfter(empl2DateTo) ||
-                empl1DateFrom.isAfter(empl2DateFrom) && empl1DateTo.isBefore(empl2DateTo);
-    }
 
 }

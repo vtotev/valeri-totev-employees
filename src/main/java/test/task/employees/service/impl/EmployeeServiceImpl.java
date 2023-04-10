@@ -7,7 +7,7 @@ import test.task.employees.entity.Project;
 import test.task.employees.repository.EmployeeRepository;
 import test.task.employees.service.EmployeeService;
 import test.task.employees.service.ProjectService;
-import test.task.employees.utils.DateParser;
+import test.task.employees.utils.DateUtilities;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -40,9 +40,9 @@ public class EmployeeServiceImpl implements EmployeeService {
                     }
                     Long empId = Long.parseLong(data[0]);
                     Long projId = Long.parseLong(data[1]);
-                    LocalDate dateFrom = DateParser.parseDate(data[2]);
+                    LocalDate dateFrom = DateUtilities.parseDate(data[2]);
                     LocalDate dateTo;
-                    dateTo = data[3].equalsIgnoreCase("null") ? null : DateParser.parseDate(data[3]);
+                    dateTo = data[3].equalsIgnoreCase("null") ? null : DateUtilities.parseDate(data[3]);
                     Project project = projectService.findByProjectId(projId).orElse(null);
                     if (project == null) {
                        project = projectService.saveProject(new Project().setProjectId(projId));
